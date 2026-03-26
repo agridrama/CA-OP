@@ -1,0 +1,15 @@
+.git
+**/.git
+.github
+
+benchmark/target
+benchmark/results
+benchmark/plots
+benchmark/settings/logs
+
+lib/target
+target
+
+**/.DS_Store
+**/*.pyc
+**/__pycache__

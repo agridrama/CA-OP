@@ -1,0 +1,4 @@
+benchmark/scripts
+benchmark/target
+settings/logs
+**/**/*.log
