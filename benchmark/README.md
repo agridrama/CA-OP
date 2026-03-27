@@ -151,6 +151,18 @@ Each run directory contains:
 - `server-*-owd.csv`: OWD time series for CA-OP and a zero-valued placeholder for true baseline runs
 - `*-stdout.log`, `*-stderr.log`: process logs
 
+## Summary of Results
+
+| Case | Observation | Interpretation |
+|---|---|---|
+| `small_jitter`, follower-connected client | Mean latency improved by up to about `5 ms`, minimum latency by about `2 ms` | Roughly half of one `10 ms` hop removed |
+| `large_jitter`, follower-connected client | Mean latency improved by up to about `75 ms`, minimum latency by about `30 ms` | Close to removing most of one `100 ms` hop |
+| Local benchmark | CA-OP was about `2-5 ms` slower than baseline | This is a useful estimate of CA-OP's pure protocol/runtime overhead |
+| `small_jitter` / `large_jitter`, leader-connected client | CA-OP was worse by about `7-10 ms` and `30-70 ms`, respectively | Baseline already benefits from a shorter server-to-server path, while CA-OP still pays deadline-wait overhead |
+| `small_jitter` / `large_jitter`, tail latency | Tail latency was roughly comparable | The fast path mainly changed mean/min latency, not the tail |
+| `imbalance`, both clients | CA-OP regressed relative to baseline | Fast-path ratio drops under asymmetric topologies |
+| `clock_quality` sweep | Performance varies across `high`, `medium`, and `low` | The current implementation still requires tuning |
+
 ## Plotting
 
 `graph_clock_benchmark.py` reads one scenario directory at a time and saves plots into `results/.../plots/`.

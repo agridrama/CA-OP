@@ -1,6 +1,8 @@
 Clock Assisted OmniPaxos (CA-OP)
 ==============================
 
+This project shows that clock-assisted consensus can reduce latency both theoretically and experimentally. CA-OP adds a one-RTT fast path to OmniPaxos, and the benchmark results show measurable latency reductions in favorable network settings.
+
 ## Background
 
 This project extends [OmniPaxos](https://github.com/haraldng/OmniPaxos), a Rust library for replicated log consensus.
@@ -64,9 +66,21 @@ cd benchmark
 
 Full benchmark and visualization instructions are in [`benchmark/README.md`](./benchmark/README.md).
 
+## Benchmark Findings
+
+| Topology / Client Placement | Observation | Impact |
+|---|---|---|
+| `small_jitter`, follower-connected client | CA-OP improved mean latency by up to about `5 ms` and minimum latency by about `2 ms` | Roughly half of one `10 ms` hop removed |
+| `large_jitter`, follower-connected client | CA-OP improved mean latency by up to about `75 ms` and minimum latency by about `30 ms` | Close to removing most of one `100 ms` hop |
+| `small_jitter` and `large_jitter`, tail latency | CA-OP and baseline were roughly comparable | Fast path did not meaningfully worsen tail latency in symmetric cases |
+| Local benchmark | CA-OP showed about `2-5 ms` extra latency relative to baseline | This is the protocol/runtime overhead floor; CA-OP needs more than this amount of network delay reduction to win |
+| Leader-connected client | CA-OP was worse by about `7-10 ms` in `small_jitter` and `30-70 ms` in `large_jitter` | Deadline-wait overhead can dominate when the baseline path is already short |
+| `imbalance` | CA-OP regressed for both clients | Fast-path ratio drops under asymmetric topologies |
+
 ## Known Constraints
 
 - The upstream baseline API differs from CA-OP. The benchmark uses a compatibility layer to run both protocols through the same client/server harness.
 - `fast_path_ratio` is only meaningful for CA-OP. Baseline runs always report `0`.
 - The containerlab templates shape traffic explicitly with `tc netem` on router interfaces, which is sufficient for scenario-level comparisons but not a full link-matrix emulator.
 - `clock_quality` remains a CLI argument for the runners, but baseline scenarios do not split outputs by clock quality.
+- Performance also varies noticeably by `clock_quality`, so CA-OP still requires tuning and should be read with that limitation in mind.
