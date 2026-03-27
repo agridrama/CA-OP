@@ -1,4 +1,4 @@
-benchmark/scripts
 benchmark/target
+benchmark/results
 settings/logs
 **/**/*.log

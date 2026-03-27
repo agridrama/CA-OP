@@ -66,10 +66,10 @@ impl OwdEstimatorConfig {
 impl Default for OwdEstimatorConfig {
     fn default() -> Self {
         Self {
-            window_size: 10,
-            max_owd: 10_000,
+            window_size: 50,
+            max_owd: 100_000,
             uncertainty_beta: 3,
-            strategy: EstimatorStrategy::Percentile { percentile: 0.5 },
+            strategy: EstimatorStrategy::Percentile { percentile: 0.8 },
         }
     }
 }

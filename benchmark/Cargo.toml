@@ -1,0 +1,35 @@
+[package]
+name = "omnipaxos_kv"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+log = "0.4.22"
+env_logger = "0.10.1"
+serde = { version = "1.0.194", features = ["derive"] }
+serde_json = "1.0.132"
+futures = "0.3.30"
+tokio = { version = "1.35.1", features = ["full"] }
+tokio-serde = { version = "0.8.0", features = ["bincode"] }
+tokio-util = { version = "0.7.10", features = ["codec"] }
+caop_omnipaxos = { package = "omnipaxos", path = "../lib/omnipaxos", features = ["serde", "toml_config", "benchmark"], optional = true }
+caop_omnipaxos_storage = { package = "omnipaxos_storage", path = "../lib/omnipaxos_storage", optional = true }
+baseline_omnipaxos = { package = "omnipaxos_baseline", path = "../vendor/omnipaxos-baseline/omnipaxos", features = ["serde", "toml_config", "macros"], optional = true }
+baseline_omnipaxos_storage = { package = "omnipaxos_storage_baseline", path = "../vendor/omnipaxos-baseline/omnipaxos_storage", optional = true }
+chrono = "0.4.34"
+rand = "0.8.5"
+csv = "1.3.1"
+config = "0.15.8"
+
+[features]
+default = ["protocol-caop"]
+protocol-caop = ["dep:caop_omnipaxos", "dep:caop_omnipaxos_storage"]
+protocol-baseline = ["dep:baseline_omnipaxos", "dep:baseline_omnipaxos_storage"]
+
+[[bin]]
+name = "client"
+path = "src/client/main.rs"
+
+[[bin]]
+name = "server"
+path = "src/server/main.rs"

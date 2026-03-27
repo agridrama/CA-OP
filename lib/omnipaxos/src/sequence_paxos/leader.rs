@@ -190,7 +190,8 @@ where
             .unwrap_or_default();
         let combined: Set<NodeId> = fast_voters.union(&entry.slow).cloned().collect();
 
-        if !entry.slow.contains(&self.pid) || combined.len() < fast_quorum {
+        let leader_in_slow = entry.slow.contains(&self.pid);
+        if !leader_in_slow || combined.len() < fast_quorum {
             return false;
         }
 

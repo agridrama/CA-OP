@@ -1,0 +1,20 @@
+location = "__LOCATION__"
+protocol = "__PROTOCOL__"
+server_id = __SERVER_ID__
+num_clients = __NUM_CLIENTS__
+listen_address = "__LISTEN_ADDRESS__"
+listen_port = __LISTEN_PORT__
+output_filepath = "__OUTPUT_FILEPATH__"
+
+[owd_config]
+window_size = __OWD_WINDOW_SIZE__
+max_owd = __OWD_MAX_US__
+uncertainty_beta = __OWD_UNCERTAINTY_BETA__
+strategy = { type = "percentile", percentile = __OWD_PERCENTILE__ }
+
+[clock]
+node_id = __CLOCK_NODE_ID__
+drift_rate_us_per_sec = __DRIFT_RATE__
+sync_uncertainty_us = __SYNC_UNCERTAINTY__
+sync_period_us = __SYNC_PERIOD__
+seed = __SEED__

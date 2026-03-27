@@ -94,7 +94,6 @@ where
             && self.state == (Role::Follower, Phase::Accept)
             && self.handle_sequence_num(acc_dec.seq_num, acc_dec.n.pid) == MessageStatus::Expected
         {
-            let base_idx = self.internal_storage.get_accepted_idx() + 1;
             let ballot = acc_dec.n;
             let decided_idx = acc_dec.decided_idx;
             let entry_meta = acc_dec.entry_meta;
@@ -104,7 +103,7 @@ where
             #[cfg(feature = "unicache")]
             let entries = self.internal_storage.decode_entries(acc_dec.entries);
             debug_assert_eq!(entry_meta.len(), entries.len());
-            self.cleanup_fast_path_metadata(base_idx, &entry_meta);
+            let preserved_tail = self.cleanup_fast_path_metadata(&entry_meta);
             let mut new_accepted_idx = self
                 .internal_storage
                 .append_entries_and_get_accepted_idx(entries)
@@ -116,35 +115,54 @@ where
             if flushed_after_decide.is_some() {
                 new_accepted_idx = flushed_after_decide;
             }
+            self.rebuild_unsynced_tail(self.internal_storage.get_accepted_idx(), preserved_tail);
             if let Some(idx) = new_accepted_idx {
                 self.reply_accepted(ballot, idx);
             }
         }
     }
 
-    fn cleanup_fast_path_metadata(&mut self, base_idx: usize, entry_meta: &[AcceptedEntryMeta]) {
-        let mut mismatch = false;
+    fn cleanup_fast_path_metadata(
+        &mut self,
+        entry_meta: &[AcceptedEntryMeta],
+    ) -> Vec<UnsyncedLogEntry<T>> {
+        let accepted_ids: std::collections::HashSet<_> =
+            entry_meta.iter().map(|meta| meta.entry_id).collect();
+        let accepted_last_deadline = entry_meta.last().map(|meta| meta.deadline);
 
-        for (offset, meta) in entry_meta.iter().enumerate() {
-            let idx = base_idx + offset;
-            let expected_hash = DOMHash::with(meta.entry_id, meta.deadline);
-            let matches_unsynced = self.unsynced_log.get(&idx).is_some_and(|entry| {
-                entry.entry_id == meta.entry_id && entry.deadline == meta.deadline
-            });
+        for meta in entry_meta {
+            self.dom.remove_from_buffers(meta.entry_id);
+        }
 
-            if matches_unsynced {
-                self.unsynced_log.remove(&idx);
-                self.unsynced_hash.remove_hash(&expected_hash);
-            } else {
-                // Entry cannot be in buffer if it is unynced log
-                self.dom.remove_from_buffers(meta.entry_id);
-                mismatch = true;
+        let mut preserved_tail = Vec::new();
+        for (_, entry) in self.unsynced_log.drain() {
+            if accepted_ids.contains(&entry.entry_id) {
+                continue;
+            }
+            if accepted_last_deadline.is_some_and(|deadline| entry.deadline > deadline) {
+                preserved_tail.push(entry);
             }
         }
 
-        if mismatch {
-            self.unsynced_log.clear();
-            self.unsynced_hash = DOMHash::default();
+        self.unsynced_hash = DOMHash::default();
+        preserved_tail.sort_by_key(|entry| (entry.deadline, entry.entry_id));
+        preserved_tail
+    }
+
+    fn rebuild_unsynced_tail(
+        &mut self,
+        accepted_idx: usize,
+        preserved_tail: Vec<UnsyncedLogEntry<T>>,
+    ) {
+        self.unsynced_log.clear();
+        self.unsynced_hash = DOMHash::default();
+
+        let mut prefix_hash = self.accepted_prefix_hash;
+        for (offset, mut entry) in preserved_tail.into_iter().enumerate() {
+            entry.prefix_hash = prefix_hash;
+            prefix_hash.extend_hash(&entry.entry_hash);
+            self.unsynced_hash.extend_hash(&entry.entry_hash);
+            self.unsynced_log.insert(accepted_idx + offset + 1, entry);
         }
     }
 

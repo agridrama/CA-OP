@@ -1,0 +1,11 @@
+location = "__LOCATION__"
+client_id = __CLIENT_ID__
+server_id = __SERVER_ID__
+server_address = "__SERVER_ADDRESS__"
+summary_filepath = "__SUMMARY_FILEPATH__"
+output_filepath = "__OUTPUT_FILEPATH__"
+
+[[requests]]
+duration_sec = __DURATION_SEC__
+requests_per_sec = __REQUESTS_PER_SEC__
+read_ratio = __READ_RATIO__

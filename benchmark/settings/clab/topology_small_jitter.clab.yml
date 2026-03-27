@@ -1,0 +1,101 @@
+name: __LAB_NAME__
+
+topology:
+  nodes:
+    router1:
+      kind: linux
+      image: wbitt/network-multitool:alpine-extra
+      exec:
+        - ip addr add 10.10.1.1/24 dev eth1
+        - ip addr add 10.10.2.1/24 dev eth2
+        - ip addr add 10.10.3.1/24 dev eth3
+        - ip addr add 10.10.4.1/24 dev eth4
+        - ip addr add 10.10.5.1/24 dev eth5
+        - ip addr add 10.10.6.1/24 dev eth6
+        - ip addr add 10.10.7.1/24 dev eth7
+        - tc qdisc replace dev eth1 root netem delay 10ms 5ms
+        - tc qdisc replace dev eth2 root netem delay 10ms 5ms
+        - tc qdisc replace dev eth3 root netem delay 10ms 5ms
+        - tc qdisc replace dev eth4 root netem delay 10ms 5ms
+        - tc qdisc replace dev eth5 root netem delay 10ms 5ms
+        - tc qdisc replace dev eth6 root netem delay 10ms 5ms
+        - tc qdisc replace dev eth7 root netem delay 10ms 5ms
+        - sysctl -w net.ipv4.ip_forward=1
+    s1:
+      kind: linux
+      image: __SERVER_IMAGE__
+      env: { RUST_LOG: info, SERVER_CONFIG_FILE: /app/run/server-1-config.toml, CLUSTER_CONFIG_FILE: /app/run/cluster-config.toml }
+      binds: [__RUN_DIR__:/app/run]
+      entrypoint: /bin/sleep
+      cmd: infinity
+      exec:
+        - ip addr add 10.10.1.11/24 dev eth1
+        - ip route replace 10.10.0.0/16 via 10.10.1.1 dev eth1
+    s2:
+      kind: linux
+      image: __SERVER_IMAGE__
+      env: { RUST_LOG: info, SERVER_CONFIG_FILE: /app/run/server-2-config.toml, CLUSTER_CONFIG_FILE: /app/run/cluster-config.toml }
+      binds: [__RUN_DIR__:/app/run]
+      entrypoint: /bin/sleep
+      cmd: infinity
+      exec:
+        - ip addr add 10.10.2.12/24 dev eth1
+        - ip route replace 10.10.0.0/16 via 10.10.2.1 dev eth1
+    s3:
+      kind: linux
+      image: __SERVER_IMAGE__
+      env: { RUST_LOG: info, SERVER_CONFIG_FILE: /app/run/server-3-config.toml, CLUSTER_CONFIG_FILE: /app/run/cluster-config.toml }
+      binds: [__RUN_DIR__:/app/run]
+      entrypoint: /bin/sleep
+      cmd: infinity
+      exec:
+        - ip addr add 10.10.3.13/24 dev eth1
+        - ip route replace 10.10.0.0/16 via 10.10.3.1 dev eth1
+    s4:
+      kind: linux
+      image: __SERVER_IMAGE__
+      env: { RUST_LOG: info, SERVER_CONFIG_FILE: /app/run/server-4-config.toml, CLUSTER_CONFIG_FILE: /app/run/cluster-config.toml }
+      binds: [__RUN_DIR__:/app/run]
+      entrypoint: /bin/sleep
+      cmd: infinity
+      exec:
+        - ip addr add 10.10.4.14/24 dev eth1
+        - ip route replace 10.10.0.0/16 via 10.10.4.1 dev eth1
+    s5:
+      kind: linux
+      image: __SERVER_IMAGE__
+      env: { RUST_LOG: info, SERVER_CONFIG_FILE: /app/run/server-5-config.toml, CLUSTER_CONFIG_FILE: /app/run/cluster-config.toml }
+      binds: [__RUN_DIR__:/app/run]
+      entrypoint: /bin/sleep
+      cmd: infinity
+      exec:
+        - ip addr add 10.10.5.15/24 dev eth1
+        - ip route replace 10.10.0.0/16 via 10.10.5.1 dev eth1
+    c1:
+      kind: linux
+      image: __CLIENT_IMAGE__
+      env: { RUST_LOG: info, CONFIG_FILE: /app/run/client-1-config.toml }
+      binds: [__RUN_DIR__:/app/run]
+      entrypoint: /bin/sleep
+      cmd: infinity
+      exec:
+        - ip addr add 10.10.6.21/24 dev eth1
+        - ip route replace 10.10.0.0/16 via 10.10.6.1 dev eth1
+    c2:
+      kind: linux
+      image: __CLIENT_IMAGE__
+      env: { RUST_LOG: info, CONFIG_FILE: /app/run/client-2-config.toml }
+      binds: [__RUN_DIR__:/app/run]
+      entrypoint: /bin/sleep
+      cmd: infinity
+      exec:
+        - ip addr add 10.10.7.22/24 dev eth1
+        - ip route replace 10.10.0.0/16 via 10.10.7.1 dev eth1
+  links:
+    - endpoints: ["router1:eth1", "s1:eth1"]
+    - endpoints: ["router1:eth2", "s2:eth1"]
+    - endpoints: ["router1:eth3", "s3:eth1"]
+    - endpoints: ["router1:eth4", "s4:eth1"]
+    - endpoints: ["router1:eth5", "s5:eth1"]
+    - endpoints: ["router1:eth6", "c1:eth1"]
+    - endpoints: ["router1:eth7", "c2:eth1"]
