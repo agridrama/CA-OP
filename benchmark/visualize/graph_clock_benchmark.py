@@ -582,25 +582,25 @@ def main():
     output_dir.mkdir(parents=True, exist_ok=True)
     fig.savefig(output_dir / f"{scenario}-latency-by-client.png", dpi=200, bbox_inches="tight")
 
-    caop_latency_frames = load_client_frames("caop", scenario)
-    caop_owd_frames = load_leader_owd_frames("caop", scenario)
-    if caop_latency_frames and caop_owd_frames:
-        latency_series = aggregate_latency_timeseries(caop_latency_frames)
-        max_outgoing_series, slack_series = aggregate_deadline_wait_timeseries(caop_owd_frames)
-        if latency_series and not max_outgoing_series.empty:
-            wait_fig, wait_axes = plt.subplots(2, 1, figsize=(14, 8), layout="constrained")
-            plot_deadline_wait_approx(
-                wait_axes,
-                latency_series,
-                max_outgoing_series,
-                slack_series,
-                ordered_clients,
-            )
-            wait_fig.savefig(
-                output_dir / f"{scenario}-deadline-wait-approx.png",
-                dpi=200,
-                bbox_inches="tight",
-            )
+    # caop_latency_frames = load_client_frames("caop", scenario)
+    # caop_owd_frames = load_leader_owd_frames("caop", scenario)
+    # if caop_latency_frames and caop_owd_frames:
+    #     latency_series = aggregate_latency_timeseries(caop_latency_frames)
+    #     max_outgoing_series, slack_series = aggregate_deadline_wait_timeseries(caop_owd_frames)
+    #     if latency_series and not max_outgoing_series.empty:
+    #         wait_fig, wait_axes = plt.subplots(2, 1, figsize=(14, 8), layout="constrained")
+    #         plot_deadline_wait_approx(
+    #             wait_axes,
+    #             latency_series,
+    #             max_outgoing_series,
+    #             slack_series,
+    #             ordered_clients,
+    #         )
+    #         wait_fig.savefig(
+    #             output_dir / f"{scenario}-deadline-wait-approx.png",
+    #             dpi=200,
+    #             bbox_inches="tight",
+    #         )
 
     quality_scenarios, baseline_quality_scenario = shared_clock_quality_scenarios(protocols, scenario)
     if quality_scenarios:
