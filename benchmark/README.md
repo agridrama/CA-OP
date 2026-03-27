@@ -14,7 +14,7 @@ The workload is a simple key-value store built on top of OmniPaxos. The benchmar
 
 By default the runner starts two clients:
 
-- `client-1` connected to `server-1`
+- `client-1` connected to `server-1` (the leader in the default configuration)
 - `client-2` connected to `server-5`
 
 Use `CLIENT_SERVER_IDS_CSV` to override this mapping.
@@ -151,17 +151,37 @@ Each run directory contains:
 - `server-*-owd.csv`: OWD time series for CA-OP and a zero-valued placeholder for true baseline runs
 - `*-stdout.log`, `*-stderr.log`: process logs
 
-## Summary of Results
+## Results
 
-| Case | Observation | Interpretation |
-|---|---|---|
-| `small_jitter`, follower-connected client | Mean latency improved by up to about `5 ms`, minimum latency by about `2 ms` | Roughly half of one `10 ms` hop removed |
-| `large_jitter`, follower-connected client | Mean latency improved by up to about `75 ms`, minimum latency by about `30 ms` | Close to removing most of one `100 ms` hop |
-| Local benchmark | CA-OP was about `2-5 ms` slower than baseline | This is a useful estimate of CA-OP's pure protocol/runtime overhead |
-| `small_jitter` / `large_jitter`, leader-connected client | CA-OP was worse by about `7-10 ms` and `30-70 ms`, respectively | Baseline already benefits from a shorter server-to-server path, while CA-OP still pays deadline-wait overhead |
-| `small_jitter` / `large_jitter`, tail latency | Tail latency was roughly comparable | The fast path mainly changed mean/min latency, not the tail |
-| `imbalance`, both clients | CA-OP regressed relative to baseline | Fast-path ratio drops under asymmetric topologies |
-| `clock_quality` sweep | Performance varies across `high`, `medium`, and `low` | The current implementation still requires tuning |
+The best results appear when clients connect to follower nodes under symmetric delay. In `small_jitter`, CA-OP improved mean latency by up to about `5 ms` and minimum latency by about `2 ms`, roughly half of one `10 ms` hop. In `large_jitter`, the gains were much larger: up to about `75 ms` in mean latency and about `30 ms` in minimum latency, close to removing most of one `100 ms` hop.
+
+The results also show a clear cost floor. In local runs without shaped network delay, CA-OP was about `2-5 ms` slower than baseline, which is a reasonable estimate of the protocol/runtime overhead. This means CA-OP needs at least that much network-delay reduction before it is likely to win overall.
+
+The benefit is not uniform across paths and topologies. For leader-connected clients, CA-OP was typically worse by about `7-10 ms` in `small_jitter` and `30-70 ms` in `large_jitter`, while tail latency stayed roughly comparable. In `imbalance`, CA-OP regressed for both clients because the fast-path ratio dropped under the asymmetric topology. Performance also varied across `high`, `medium`, and `low`, so the current implementation should still be read as requiring tuning.
+
+### Local clock-quality comparison
+
+![Local clock-quality comparison](../docs/local-clock-quality-rps500-latency-comparison.png)
+
+This figure is useful for isolating protocol overhead without shaped network delay. The main takeaway is that CA-OP is typically about `2-5 ms` slower than baseline locally, which is a good estimate of the implementation overhead that must be amortized by network-delay savings.
+
+### `small_jitter`
+
+![small_jitter clock-quality comparison](../docs/small_jitter-clock-quality-rps500-latency-comparison.png)
+
+Under `small_jitter`, the follower-connected client shows a modest improvement over baseline, while the leader-connected client is slightly worse. This is the clearest example of CA-OP removing a fraction of one hop, but only when the request path benefits from the fast path.
+
+### `large_jitter`
+
+![large_jitter clock-quality comparison](../docs/large_jitter-clock-quality-rps500-latency-comparison.png)
+
+Under `large_jitter`, the follower-connected client sees the strongest benefit. The reduction is large enough to dominate the local `2-5 ms` overhead, which is why CA-OP clearly outperforms baseline there. The leader-connected client still tends to regress because the deadline-wait cost remains while the baseline path is already short.
+
+### `imbalance`
+
+![imbalance clock-quality comparison](../docs/imbalance-clock-quality-rps500-latency-comparison.png)
+
+`imbalance` highlights a weakness rather than a win. Because the topology is asymmetric, the fast-path ratio drops and CA-OP regresses for both clients. This is the main topology-dependent limitation observed in the current implementation.
 
 ## Plotting
 

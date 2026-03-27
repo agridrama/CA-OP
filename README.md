@@ -68,14 +68,13 @@ Full benchmark and visualization instructions are in [`benchmark/README.md`](./b
 
 ## Benchmark Findings
 
-| Topology / Client Placement | Observation | Impact |
-|---|---|---|
-| `small_jitter`, follower-connected client | CA-OP improved mean latency by up to about `5 ms` and minimum latency by about `2 ms` | Roughly half of one `10 ms` hop removed |
-| `large_jitter`, follower-connected client | CA-OP improved mean latency by up to about `75 ms` and minimum latency by about `30 ms` | Close to removing most of one `100 ms` hop |
-| `small_jitter` and `large_jitter`, tail latency | CA-OP and baseline were roughly comparable | Fast path did not meaningfully worsen tail latency in symmetric cases |
-| Local benchmark | CA-OP showed about `2-5 ms` extra latency relative to baseline | This is the protocol/runtime overhead floor; CA-OP needs more than this amount of network delay reduction to win |
-| Leader-connected client | CA-OP was worse by about `7-10 ms` in `small_jitter` and `30-70 ms` in `large_jitter` | Deadline-wait overhead can dominate when the baseline path is already short |
-| `imbalance` | CA-OP regressed for both clients | Fast-path ratio drops under asymmetric topologies |
+Detailed results are in the [benchmark README](./benchmark/README.md), but the high-level observations are summarized below.
+
+The strongest gains appear for follower-connected clients under symmetric delay. In `small_jitter`, CA-OP improved mean latency by up to about `5 ms`. In `large_jitter`, the gain reached about `75 ms`, which is close to removing most of one `100 ms` hop.
+
+Local runs show the cost floor: CA-OP adds about `2-5 ms` of protocol/runtime overhead relative to baseline. In practice, this means CA-OP needs more network-delay reduction than that before it is likely to win overall.
+
+The benefit is not uniform. For leader-connected clients, CA-OP was worse by about `7-10 ms` in `small_jitter` and `30-70 ms` in `large_jitter`. In `imbalance`, CA-OP also regressed for both clients because the fast-path ratio dropped under the asymmetric topology.
 
 ## Known Constraints
 
