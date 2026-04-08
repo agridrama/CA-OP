@@ -21,7 +21,7 @@ CA-OP combines OmniPaxos with deadline-ordered message delivery inspired by the 
 - CA-OP's performance and gains are dependent on 1) **network conditions** (e.g., jitter, topology) and 2) **clock quality**, which affects the fast-path ratio.
 - CA-OP adds about **2-5 ms** of protocol/runtime overhead relative to baseline, so it requires sufficient network-delay reduction to be beneficial overall.
 
-The benchmark results are detailed in the [benchmark README ##Result](./benchmark/README.md?plain=1#L154).
+The benchmark results are detailed in the [benchmark README ##Result section](./benchmark/README.md#L154).
 
 ## Algorithm Overview
 
