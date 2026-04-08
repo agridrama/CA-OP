@@ -195,13 +195,6 @@ python graph_clock_benchmark.py ../results/local local-medium-rps1000
 python graph_clock_benchmark.py ../results/containerlab small_jitter-medium-rps1000
 ```
 
-`MPLBACKEND=Agg` is useful when you only want files and not an interactive window:
-
-```bash
-cd CA-OP/benchmark/visualize
-MPLBACKEND=Agg python graph_clock_benchmark.py ../results/local local-medium-rps1000
-```
-
 Saved figures:
 
 - `plots/<scenario>-latency-by-client.png`

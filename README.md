@@ -16,6 +16,13 @@ CA-OP combines OmniPaxos with deadline-ordered message delivery inspired by the 
 - **Implementation**: added the fast-path optimization that can decide in one RTT
 - **Benchmarking**: built a reproducible benchmark harness to compare CA-OP against upstream OmniPaxos
 
+## Main Results
+- CA-OP can reduce end-to-end latency by up to about **75 ms / 12%** in high-jitter (100 ms latency ± 20 ms jitter) scenarios.
+- CA-OP's performance and gains are dependent on 1) **network conditions** (e.g., jitter, topology) and 2) **clock quality**, which affects the fast-path ratio.
+- CA-OP adds about **2-5 ms** of protocol/runtime overhead relative to baseline, so it requires sufficient network-delay reduction to be beneficial overall.
+
+The benchmark results are detailed in the [benchmark README ##Result](./benchmark/README.md?plain=1#L154).
+
 ## Algorithm Overview
 
 The protocol introduces a fast path that reduces latency when proposals arrive before their deadline.
