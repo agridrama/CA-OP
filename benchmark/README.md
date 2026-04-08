@@ -151,6 +151,7 @@ Each run directory contains:
 - `server-*-owd.csv`: OWD time series for CA-OP and a zero-valued placeholder for true baseline runs
 - `*-stdout.log`, `*-stderr.log`: process logs
 
+<a name="results-anchor"></a>
 ## Results
 
 The best results appear when clients connect to follower nodes under symmetric delay. In `small_jitter`, CA-OP improved mean latency by up to about `5 ms` and minimum latency by about `2 ms`, roughly half of one `10 ms` hop. In `large_jitter`, the gains were much larger: up to about `75 ms` in mean latency and about `30 ms` in minimum latency, close to removing most of one `100 ms` hop.
